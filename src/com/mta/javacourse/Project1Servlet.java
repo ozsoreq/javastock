@@ -9,6 +9,6 @@ public class Project1Servlet extends HttpServlet {
 		int num1=7, num2=3, num3=4;
 		int result = (num2+num3)*num1;
 		resp.getWriter().print("The result of "+num1+"*("+num2+"+"+num3+")="+result);
-		//nothing
+		//changing
 	}
 }
