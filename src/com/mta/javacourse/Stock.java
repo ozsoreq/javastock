@@ -1,23 +1,66 @@
 package com.mta.javacourse;
 
 import java.io.IOException;
-
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+
 public class Stock extends HttpServlet{
-public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		
-		resp.setContentType("text/html");
-		resp.getWriter().println("<b><u>Exercise 4</u></b>");
-		StockServlet Stock1 = new StockServlet(("PIH"), (float)12.4, (float)13.1);
-		StockServlet Stock2 = new StockServlet(("AAL"), (float)5.5, (float)5.78);
-		StockServlet Stock3 = new StockServlet(("CAAS"), (float)31.5, (float)31.2);
-		resp.getWriter().println("<br>");
-		resp.getWriter().println(Stock1.getHtmlDescription()+"<br>");
-		resp.getWriter().println(Stock2.getHtmlDescription()+"<br>");
-		resp.getWriter().println(Stock3.getHtmlDescription()+"<br>");
-		
+	public Stock(String stockSymbol, float stockAsk, float stockBid)
+	{
+		setSymbol(stockSymbol);
+		setAsk(stockAsk);
+		setBid(stockBid);
+		setDate();
 	}
+	private String symbol;
+	private float ask;
+	private float bid;
+	private Date date;
+	private String DATE_FORMAT = "MM/dd/yyyy";
+	private SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+	
+	public void setSymbol(String stockSymbol)
+	{
+		symbol = stockSymbol;	
+	}
+	public String getSymbol()
+	{
+		return symbol;
+	}
+	public void setAsk(float stockAsk)
+	{
+		ask = stockAsk;
+	}
+	public float getAsk()
+	{
+		return ask;
+	}
+	public void setBid(float stockBid)
+	{
+		bid = stockBid;
+	}
+	public float getBid()
+	{
+		return bid;
+	}
+	public void setDate()
+	{
+		date = new Date();
+		date.setDate(15);
+		date.setMonth(10);
+		date.setYear(114);
+	}
+	public Date getDate()
+	{
+		return date;
+	}
+	public String getHtmlDescription()
+	{
+		return ("<b>Stock Symbol:</b> " + symbol + " ,<b>Ask:</b> "+ ask+" ,<b>Bid:</b> "+bid+" ,<b>Date:</b> " +sdf.format(date));
+	}
+
 }
