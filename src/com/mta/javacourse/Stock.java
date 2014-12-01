@@ -8,13 +8,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-public class Stock extends HttpServlet{
-	public Stock(String stockSymbol, float stockAsk, float stockBid)
+public class Stock
+{
+	public Stock(String stockSymbol, float stockAsk, float stockBid,Date stockDate)
 	{
 		setSymbol(stockSymbol);
 		setAsk(stockAsk);
 		setBid(stockBid);
-		setDate();
+		setDate(stockDate);
 	}
 	private String symbol;
 	private float ask;
@@ -47,12 +48,9 @@ public class Stock extends HttpServlet{
 	{
 		return bid;
 	}
-	public void setDate()
+	public void setDate(Date stockDate)
 	{
-		date = new Date();
-		date.setDate(15);
-		date.setMonth(10);
-		date.setYear(114);
+		date = stockDate;
 	}
 	public Date getDate()
 	{
