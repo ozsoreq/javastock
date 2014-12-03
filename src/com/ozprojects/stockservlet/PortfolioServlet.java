@@ -15,14 +15,9 @@ public class PortfolioServlet extends HttpServlet {
 		
 		resp.setContentType("text/html");
 		resp.getWriter().println("<b><u>Exercise 5</u></b><br>");
-		resp.getWriter().println("<b>Code is available at GitHub.</b><br>");
 		StockService portfolioService = new StockService();
 		Portfolio portfolio = portfolioService.getPorfolio();
 		Stock[] stocks = portfolio.getStocks();
-		
-	/*for (int i = 0; i < portfolio.portfolioSize ; i++) {
-			resp.getWriter().println(stocks[i].getHtmlDescription()+"<br>");
-		} //Loop to run on the porfolioSize for printing.  */
-		
+		resp.getWriter().println(portfolio.getHtmlString());
 	}
 }
