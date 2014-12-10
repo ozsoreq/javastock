@@ -4,12 +4,16 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServlet;
 
-import com.mta.javacourse.Stock;
 import com.ozprojects.stockmodel.Portfolio;
-
+import com.ozprojects.stockmodel.Stock;
+/**
+ * An instance of this class represents a stock service
+ * @author Oz Soreq
+ * @since 08/12/2014
+ * date 8/12/2014
+ */
 public class StockService
 {
-
 	public Portfolio getPorfolio()
 	{
 		Portfolio myPortfolio = new Portfolio();
@@ -24,4 +28,5 @@ public class StockService
 		
 		return myPortfolio;
 	}
+	
 }
