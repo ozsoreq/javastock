@@ -1,4 +1,4 @@
-package com.ozprojects.stockmodel;
+package com.ozprojects.model;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;

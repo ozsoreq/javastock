@@ -8,7 +8,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	
 	<servlet>
 		<servlet-name>PortfolioServlet</servlet-name>
-		<servlet-class>com.ozprojects.stockservlet.PortfolioServlet</servlet-class>
+		<servlet-class>com.ozprojects.servlet.PortfolioServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>PortfolioServlet</servlet-name>
