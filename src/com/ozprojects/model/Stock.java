@@ -17,12 +17,19 @@ public class Stock
 {
 
 
-	private String symbol;
-	private float ask;
-	private float bid;
-	private Date date;
-	private String DATE_FORMAT = "MM/dd/yyyy";
-	private SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+	protected String symbol;
+	protected float ask;
+	protected float bid;
+	protected Date date;
+	protected String DATE_FORMAT = "MM/dd/yyyy";
+	protected SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+	
+	Stock()
+	{
+		this.symbol = "";
+		this.ask = 0;
+		this.bid = 0;
+	}
 
 	/**
 	 * This constructs a Stock with a specified 

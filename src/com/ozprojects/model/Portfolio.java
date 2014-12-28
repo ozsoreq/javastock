@@ -19,53 +19,12 @@ public class Portfolio
 		BUY,
 		SELL;
 	}
-	public Stock[] stocks;
+	//public Stock[] stocks;
 	private StockStatus[] stocksStatus;
 	private int portfolioSize;
 	private static final int MAX_PORTFOLIO_SIZE = 5;
 	private float balance;
 	public String title;
-
-	public class StockStatus
-	{
-		private String symbol;
-		private float currentBid;
-		private float currentAsk;
-		private Date date;
-		private ALGO_RECOMMENDATION recommendation;
-		private int stockQuantity; 
-
-		/**
-		 * This constructs a StockStatus with a specified 
-		 * symbol, currentBid, currentAsk, date, recommendation, stockQuantity
-		 */
-		public StockStatus()
-		{
-			this.symbol = "";
-			this.currentBid = 0;
-			this.currentAsk = 0;
-			this.date = new Date();
-			this.recommendation = null;
-			this.stockQuantity = 0;
-		}
-
-		/**
-		 * This is a copy constructor of StockStatus
-		 * @param stockStatus - An instance of StockStatus
-		 */
-		public StockStatus(StockStatus stockStatus)
-		{
-			this.symbol = stockStatus.symbol;
-			this.currentBid = stockStatus.currentBid;
-			this.currentAsk = stockStatus.currentAsk;
-			this.date = new Date(stockStatus.date.getTime());
-			this.recommendation = stockStatus.recommendation;
-			this.stockQuantity = stockStatus.stockQuantity;
-		}
-
-	}
-
-
 
 	/**
 	 * This constructs a Portfolio with a specified 
@@ -74,7 +33,7 @@ public class Portfolio
 
 	public Portfolio()
 	{
-		stocks = new Stock[MAX_PORTFOLIO_SIZE];
+		//stocks = new Stock[MAX_PORTFOLIO_SIZE];
 		stocksStatus = new StockStatus[MAX_PORTFOLIO_SIZE];
 		portfolioSize=0;
 		title=("Portfolio#1");
@@ -88,10 +47,10 @@ public class Portfolio
 
 	public Portfolio(Portfolio portfolio){
 
-		stocks = new Stock[MAX_PORTFOLIO_SIZE];
+		//stocks = new Stock[MAX_PORTFOLIO_SIZE];
 		stocksStatus = new StockStatus[MAX_PORTFOLIO_SIZE];
 		for (int i = 0; i < portfolio.portfolioSize; i++) {
-			this.stocks[i] = new Stock(portfolio.stocks[i]); 
+			//this.stocks[i] = new Stock(portfolio.stocks[i]); 
 			this.stocksStatus[i]=new StockStatus(portfolio.stocksStatus[i]); 
 		}
 		this.title=portfolio.title;
@@ -110,10 +69,10 @@ public class Portfolio
 		}
 		else
 		{
-			stocks[portfolioSize] = recievedStock;
+			//stocks[portfolioSize] = recievedStock;
 			stocksStatus[portfolioSize] = new StockStatus();
-			stocksStatus[portfolioSize].currentAsk = recievedStock.getAsk();
-			stocksStatus[portfolioSize].currentBid = recievedStock.getBid();
+			stocksStatus[portfolioSize].ask = recievedStock.getAsk();
+			stocksStatus[portfolioSize].bid = recievedStock.getBid();
 			stocksStatus[portfolioSize].date = recievedStock.getDate();
 			stocksStatus[portfolioSize].symbol = recievedStock.getSymbol();
 			portfolioSize++;
@@ -121,7 +80,7 @@ public class Portfolio
 	}
 	public Stock[] getStocks()
 	{
-		return stocks;
+		return stocksStatus;
 	}
 	/**
 	 * 
@@ -132,7 +91,7 @@ public class Portfolio
 		String HtmlString= new String("<h1>"+title+"</h1>");
 		for (int i = 0; i < portfolioSize; i++) 
 		{ 
-			HtmlString=HtmlString+(stocks[i].getHtmlDescription()+"<br>");
+			HtmlString=HtmlString+(stocksStatus[i].getHtmlDescription()+"<br>");
 		}
 		HtmlString = HtmlString + "<br> Total portfolio value: " + getTotalValue() + "$<br>Total stocks value: " + getStocksValue()
 				+ "$<br>Balance: " + getBalance()+"$";
@@ -154,7 +113,7 @@ public class Portfolio
 			{
 				for (int j = i; j < portfolioSize-i; j++)
 				{
-					stocks[j]=stocks[j+1];
+				//	stocks[j]=stocks[j+1];
 					stocksStatus[j]=stocksStatus[j+1];
 				}
 				portfolioSize--;
@@ -187,18 +146,18 @@ public class Portfolio
 			{
 				if (quantity==-1)
 				{
-					balance = balance+(stocksStatus[i].stockQuantity*stocksStatus[i].currentBid);
-					stocksStatus[i].stockQuantity=0;
+					balance = balance+(stocksStatus[i].getStockQuantity()*stocksStatus[i].bid);
+					stocksStatus[i].setStockQuantity(0);
 				}
-				else if (stocksStatus[i].stockQuantity-quantity<0)
+				else if (stocksStatus[i].getStockQuantity()-quantity<0)
 				{
 					System.out.println("Not enough stocks to sell");
 					return false;
 				}
 				else
 				{
-					balance = balance+(quantity*stocksStatus[i].currentBid);
-					stocksStatus[i].stockQuantity = stocksStatus[i].stockQuantity-quantity;
+					balance = balance+(quantity*stocksStatus[i].bid);
+					stocksStatus[i].setStockQuantity(stocksStatus[i].getStockQuantity()-quantity);
 				}
 			 flag = true;
 			}
@@ -219,19 +178,19 @@ public class Portfolio
 			{
 				if (quantity==-1)
 				{
-					int ammountToBuy = (int)(balance/stocksStatus[i].currentAsk);
-					stocksStatus[i].stockQuantity = stocksStatus[i].stockQuantity + ammountToBuy;
-					balance = balance-(stocksStatus[i].currentAsk*ammountToBuy);
+					int ammountToBuy = (int)(balance/stocksStatus[i].ask);
+					stocksStatus[i].setStockQuantity(stocksStatus[i].getStockQuantity() + ammountToBuy);
+					balance = balance-(stocksStatus[i].ask*ammountToBuy);
 				}
-				else if(quantity*stocksStatus[i].currentAsk > balance)
+				else if(quantity*stocksStatus[i].ask > balance)
 				{
 					System.out.println("Not enough balance to complete purchase");
 					return false;
 				}
 				else
 				{
-					stocksStatus[i].stockQuantity = stocksStatus[i].stockQuantity + quantity;
-					balance = balance - (quantity*stocksStatus[i].currentAsk);	
+					stocksStatus[i].setStockQuantity(stocksStatus[i].getStockQuantity() + quantity);
+					balance = balance - (quantity*stocksStatus[i].ask);	
 				}
 				return true;
 			}
@@ -247,7 +206,7 @@ public class Portfolio
 		float valueStock=0;
 		for (int i = 0; i < portfolioSize; i++) 
 		{
-			valueStock = valueStock + (stocksStatus[i].stockQuantity*stocksStatus[i].currentBid);
+			valueStock = valueStock + (stocksStatus[i].getStockQuantity()*stocksStatus[i].bid);
 		}
 		return valueStock;
 	}

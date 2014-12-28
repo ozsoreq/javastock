@@ -20,7 +20,7 @@ public class PortfolioServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		
 		resp.setContentType("text/html");
-		resp.getWriter().println("<b><u><h1>Exercise 7</h1></u></b><br>");
+		resp.getWriter().println("<b><u><h1>Exercise 8</h1></u></b><br>");
 		PortfolioService portfolioService = new PortfolioService();
 		Portfolio portfolio1 = portfolioService.getPorfolio();
 		Stock[] stocks = portfolio1.getStocks();
