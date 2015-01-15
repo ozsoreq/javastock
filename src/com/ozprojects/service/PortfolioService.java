@@ -4,6 +4,10 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServlet;
 
+import com.ozprojects.exception.BalanceException;
+import com.ozprojects.exception.PortfolioFullException;
+import com.ozprojects.exception.StockAlreadyExistsException;
+import com.ozprojects.exception.StockNotExistException;
 import com.ozprojects.model.Portfolio;
 import com.ozprojects.model.Stock;
 /**
@@ -14,7 +18,7 @@ import com.ozprojects.model.Stock;
  */
 public class PortfolioService
 {
-	public Portfolio getPorfolio()
+	public Portfolio getPorfolio() throws BalanceException, StockAlreadyExistsException, StockNotExistException, PortfolioFullException
 	{
 		Portfolio myPortfolio = new Portfolio();
 		myPortfolio.title = "Exercise 7 portfolio";
@@ -25,6 +29,7 @@ public class PortfolioService
 		
 		myPortfolio.addStock(Stock1);
 		myPortfolio.addStock(Stock2);
+		myPortfolio.addStock(Stock3);
 		myPortfolio.addStock(Stock3);
 		
 		myPortfolio.buyStock("PIH", 20);

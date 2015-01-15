@@ -6,6 +6,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ozprojects.exception.BalanceException;
+import com.ozprojects.exception.PortfolioFullException;
+import com.ozprojects.exception.StockAlreadyExistsException;
+import com.ozprojects.exception.StockNotExistException;
 import com.ozprojects.model.Portfolio;
 import com.ozprojects.model.Stock;
 import com.ozprojects.service.PortfolioService;
@@ -18,18 +22,31 @@ import com.ozprojects.service.PortfolioService;
  */
 public class PortfolioServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		
+
 		resp.setContentType("text/html");
-		resp.getWriter().println("<b><u><h1>Exercise 8</h1></u></b><br>");
+		resp.getWriter().println("<b><u><h1>Exercise 9</h1></u></b><br>");
 		PortfolioService portfolioService = new PortfolioService();
-		Portfolio portfolio1 = portfolioService.getPorfolio();
-		Stock[] stocks = portfolio1.getStocks();
-		Portfolio portfolio2 = new Portfolio(portfolio1); // Using the copy c'tor
-		portfolio2.title = "Copy Portfolio";
-		
-		resp.getWriter().println(portfolio1.getHtmlString());
-		
-		
-		
+		try
+		{
+			Portfolio portfolio1 = portfolioService.getPorfolio();
+			resp.getWriter().println(portfolio1.getHtmlString());
+		}
+		catch (StockAlreadyExistsException e)
+		{
+			resp.getWriter().println(e.getMessage());
+		}
+		catch (BalanceException e) 
+		{
+			resp.getWriter().println(e.getMessage());
+		}
+		catch (StockNotExistException e) 
+		{
+			resp.getWriter().println(e.getMessage());
+		}
+		catch (PortfolioFullException e)
+		{
+			resp.getWriter().println(e.getMessage());
+		}
+
 	}
 }

@@ -6,6 +6,11 @@ import java.util.Date;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.ozprojects.exception.BalanceException;
+import com.ozprojects.exception.PortfolioFullException;
+import com.ozprojects.exception.StockAlreadyExistsException;
+import com.ozprojects.exception.StockNotExistException;
 /**
  * An instance of this class represents a portfolio
  * @author Oz Soreq
@@ -60,12 +65,21 @@ public class Portfolio
 	/**
 	 * This method adds a stock to a portfolio
 	 * @param recievedStock - a stock
+	 * @throws StockAlreadyExistsException throws an exception if the stock already exists
+	 * @throws PortfolioFullException throws an exception if the portfolio is full
 	 */
-	public void addStock(Stock recievedStock)
+	public void addStock(Stock recievedStock) throws PortfolioFullException, StockAlreadyExistsException
 	{
+		for(int i=0 ; stocksStatus[i]!=null ; i++)
+		{
+			if(stocksStatus[i].getSymbol().equals(recievedStock.getSymbol()))
+			{
+				throw new StockAlreadyExistsException();
+			}
+		}
 		if (portfolioSize >= MAX_PORTFOLIO_SIZE)
 		{
-			System.out.println("Can’t add new stock, portfolio can have only "+MAX_PORTFOLIO_SIZE+ " stocks");
+			throw new PortfolioFullException();
 		}
 		else
 		{
@@ -101,11 +115,11 @@ public class Portfolio
 	/**
 	 * This method remove a stock from a Portfolio instance
 	 * @param symbol - symbol of stock
-	 * @return true/false whether the operation was successfull or not
+	 * @throws StockNotExistException throws an exception if the stock does not exist
 	 */
-	public boolean removeStock(String symbol)
+	public void removeStock(String symbol) throws StockNotExistException
 	{
-		
+		boolean isFound = false;
 		sellStock(symbol, -1);
 		for (int i = 0; i < portfolioSize; i++)
 		{
@@ -117,10 +131,13 @@ public class Portfolio
 					stocksStatus[j]=stocksStatus[j+1];
 				}
 				portfolioSize--;
-				return true;
+				isFound = true;
 			}
 		}
-		return false;
+		if(!isFound)
+		{
+			throw new StockNotExistException();
+		}
 	}
 	
 	/**
@@ -135,15 +152,16 @@ public class Portfolio
 	 * This method sell a specific stock from portfolio
 	 * @param symbol - symbol of stock
 	 * @param quantity - quantity of stock
-	 * @return true/false if the operation was successful
+	 * @throws StockNotExistException throws an exception if the stock does not exist
 	 */
-	public boolean sellStock(String symbol, int quantity)
+	public void sellStock(String symbol, int quantity) throws StockNotExistException
 	{
-		boolean flag=false;
+		boolean isFound=false;
 		for (int i = 0; i < portfolioSize; i++)
 		{
 			if (stocksStatus[i].symbol.equals(symbol))
 			{
+				isFound = true;
 				if (quantity==-1)
 				{
 					balance = balance+(stocksStatus[i].getStockQuantity()*stocksStatus[i].bid);
@@ -152,30 +170,34 @@ public class Portfolio
 				else if (stocksStatus[i].getStockQuantity()-quantity<0)
 				{
 					System.out.println("Not enough stocks to sell");
-					return false;
 				}
 				else
 				{
 					balance = balance+(quantity*stocksStatus[i].bid);
 					stocksStatus[i].setStockQuantity(stocksStatus[i].getStockQuantity()-quantity);
 				}
-			 flag = true;
 			}
 		}
-		return flag;
+		if(!isFound)
+		{
+			throw new StockNotExistException();
+		}
 	}
 	/**
 	 * This method buys a specific stock for a portfolio
 	 * @param symbol - symbol of stock
 	 * @param quantity - quantity of stock
-	 * @return true/false if the operation was successful
+	 * @throws StockNotExistException throws an exception if the stock does not exist
+	 * @throws BalanceException throws an exception if the balance is about to be negative
 	 */
-	public boolean buyStock(String symbol, int quantity)
+	public void buyStock(String symbol, int quantity) throws BalanceException, StockNotExistException
 	{
+		boolean isFound = false;
 		for (int i=0 ; i <portfolioSize; i++)
 		{
 			if (stocksStatus[i].symbol.equals(symbol))
 			{
+				isFound = true;
 				if (quantity==-1)
 				{
 					int ammountToBuy = (int)(balance/stocksStatus[i].ask);
@@ -184,18 +206,21 @@ public class Portfolio
 				}
 				else if(quantity*stocksStatus[i].ask > balance)
 				{
-					System.out.println("Not enough balance to complete purchase");
-					return false;
+					throw new BalanceException();
 				}
 				else
 				{
 					stocksStatus[i].setStockQuantity(stocksStatus[i].getStockQuantity() + quantity);
 					balance = balance - (quantity*stocksStatus[i].ask);	
 				}
-				return true;
+				
 			}
 		}
-		return false;
+		if(!isFound)
+		{
+			throw new StockNotExistException();
+		}
+		
 	}
 	/**
 	 * This method returns the stocks value of a portfolio
