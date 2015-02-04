@@ -1,45 +1,201 @@
 package com.ozprojects.service;
 
-import java.util.Date;
-
-import javax.servlet.http.HttpServlet;
-
+import com.ozprojects.dto.PortfolioTotalStatus;
 import com.ozprojects.exception.BalanceException;
+import com.ozprojects.exception.IllegalQuantityException;
 import com.ozprojects.exception.PortfolioFullException;
 import com.ozprojects.exception.StockAlreadyExistsException;
-import com.ozprojects.exception.StockNotExistException;
+import com.ozprojects.exception.StockNotExistsException;
+import com.ozprojects.exception.SymbolNotFoundInNasdaq;
 import com.ozprojects.model.Portfolio;
 import com.ozprojects.model.Stock;
+import com.ozprojects.model.StockStatus;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
 /**
- * An instance of this class represents a stock service
- * @author Oz Soreq
- * @since 08/12/2014
- * date 8/12/2014
+ * @author hanan.gitliz@gmail.com
  */
-public class PortfolioService
-{
-	public Portfolio getPorfolio() throws BalanceException, StockAlreadyExistsException, StockNotExistException, PortfolioFullException
-	{
-		Portfolio myPortfolio = new Portfolio();
-		myPortfolio.title = "Exercise 7 portfolio";
-		myPortfolio.updateBalance(10000);
-		Stock Stock1 = new Stock(("PIH"), (float)10, (float)8.5,new Date(114,11,15));
-		Stock Stock2 = new Stock(("AAL"), (float)30, (float)25.5,new Date(114,11,15));
-		Stock Stock3 = new Stock(("CAAS"), (float)20, (float)15.5,new Date(114,11,15));
-		
-		myPortfolio.addStock(Stock1);
-		myPortfolio.addStock(Stock2);
-		myPortfolio.addStock(Stock3);
-		myPortfolio.addStock(Stock3);
-		
-		myPortfolio.buyStock("PIH", 20);
-		myPortfolio.buyStock("AAL", 30);
-		myPortfolio.buyStock("CAAS", 40);
-		
-		myPortfolio.sellStock("AAL", -1);
-		myPortfolio.removeStock("CAAS");
-		
-		return myPortfolio;
+public class PortfolioService {
+	
+	private final static Logger log = Logger.getLogger(PortfolioService.class.getSimpleName());
+	
+	private Portfolio portfolio;
+	
+	public enum OPERATION {
+		ADD, REMOVE, SELL, BUY
 	}
 	
+	private static final int DAYS_BACK = 30;
+	private static PortfolioService instance = new PortfolioService();
+
+	public static PortfolioService getInstance() {
+		return instance;
+	}
+	
+	private DatastoreService datastoreService;
+	
+	private PortfolioService() {
+		datastoreService = DatastoreService.getInstance();
+	}
+
+	public Portfolio getPortfolio() {
+		if(portfolio == null) {
+			portfolio = datastoreService.loadPortfolilo();
+		}
+		
+		return portfolio;
+	}
+	
+	/**
+	 * Updates Portfolio with algo recommendation.
+	 */
+	public void update() {
+		StockStatus[] stocks = getPortfolio().getStocks();
+		List<String> symbols = new ArrayList<>(Portfolio.getMaxPortfolioSize());
+		for (StockStatus stockStatus : stocks) {
+			symbols.add(stockStatus.getSymbol());
+		}
+		
+		List<StockStatus> update = new ArrayList<>(Portfolio.getMaxPortfolioSize());
+		List<Stock> currentStocksList;
+		try {
+			currentStocksList = MarketService.getInstance().getStocks(symbols);
+			for (Stock stock : currentStocksList) {
+				update.add(new StockStatus(stock));
+			}
+			
+			datastoreService.saveToDataStore(update);
+			
+			//load fresh data from database.
+			portfolio = null;
+		} catch (SymbolNotFoundInNasdaq e) {
+			log.severe(e.getMessage());
+		}
+	}
+	
+	public PortfolioTotalStatus[] getPortfolioTotalStatus () {
+		
+		Portfolio portfolio = getPortfolio();
+		Map<Date, Float> map = new HashMap<>();
+		
+		//get stock status from db.
+		Stock[] stocks = portfolio.getStocks();
+		for (int i = 0; i < stocks.length; i++) {
+			Stock stock = stocks[i];
+			
+			if(stock != null) {
+				List<StockStatus> history = datastoreService.getStockHistory(stock.getSymbol(), DAYS_BACK);
+				
+				for (int j = 0; j < history.size(); j++) {
+					StockStatus curr = history.get(j);
+					Date date = dateMidnight(curr.getDate());
+					float value = curr.getBid()*curr.getStockQuantity();
+					
+					Float total = map.get(date);
+					if(total == null) {
+						total = value;
+					}else {
+						total += value;
+					}
+					
+					map.put(date, value);
+				}
+			}
+		}
+		
+		PortfolioTotalStatus[] ret = new PortfolioTotalStatus[map.size()];
+		
+		int index = 0;
+		//create dto objects
+		for (Date date : map.keySet()) {
+			ret[index] = new PortfolioTotalStatus(date, map.get(date));
+			index++;
+		}
+		
+		//sort by date ascending.
+		Arrays.sort(ret);
+		
+		return ret;
+	}
+	
+	public void setTitle(String title) {
+		Portfolio portfolio = getPortfolio();
+		portfolio.setTitle(title);
+		datastoreService.updatePortfolio(portfolio);
+		
+		flush();
+	}
+	
+	public void setBalance(float newBalance) throws BalanceException {
+		Portfolio portfolio = getPortfolio();
+		portfolio.updateBalance(newBalance);
+		datastoreService.updatePortfolio(portfolio);
+		
+		flush();
+	}
+	
+	public void addStock(String symbol) throws StockAlreadyExistsException, PortfolioFullException, StockNotExistsException, SymbolNotFoundInNasdaq {
+		Portfolio portfolio = getPortfolio();
+		
+		//get current symbol values from nasdaq.
+		Stock stock = MarketService.getInstance().getStock(symbol);
+		
+		
+		if(stock != null) {
+			
+			//first thing, add it to portfolio.
+			portfolio.addStock(stock);
+			
+			//second thing, save the new stock to the database.
+			datastoreService.saveStock(portfolio.findBySymbol(symbol));
+			
+			flush();
+		}
+	}
+	
+	public void buyStock(String symbol, int quantity) throws BalanceException, StockNotExistsException {
+		getPortfolio().buyStock(symbol, quantity);
+		flush();
+	}
+
+	public void sellStock(String symbol, int quantity) throws StockNotExistsException, IllegalQuantityException {
+		getPortfolio().sellStock(symbol, quantity);
+		flush();
+	}
+
+	public void removeStock(String symbol) throws StockNotExistsException, IllegalQuantityException {
+		getPortfolio().removeStock(symbol);
+		flush();
+	}
+	
+	private void flush() {
+		//update db
+		datastoreService.updatePortfolio(getPortfolio());
+		//now make next call to portfolio to fetch data from updated db.
+		portfolio = null;
+	}
+	
+	/**
+	 * Transform a given date to start day date.
+	 * @param date
+	 * @return
+	 */
+	private Date dateMidnight(Date date) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		return cal.getTime();
+	}
 }

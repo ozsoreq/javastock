@@ -17,14 +17,14 @@ public class Stock
 {
 
 
-	protected String symbol;
+	public String symbol;
 	protected float ask;
 	protected float bid;
 	protected Date date;
 	protected String DATE_FORMAT = "MM/dd/yyyy";
 	protected SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
 	
-	Stock()
+	public Stock()
 	{
 		this.symbol = "";
 		this.ask = 0;

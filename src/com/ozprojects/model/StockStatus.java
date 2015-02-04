@@ -71,7 +71,10 @@ public class StockStatus extends Stock {
 	public void setRecommendation(ALGO_RECOMMENDATION recommendation) {
 		this.recommendation = recommendation;
 	}
-
+	
+	public StockStatus(Stock stock) {
+				super(stock);
+			}
 	
 
 
